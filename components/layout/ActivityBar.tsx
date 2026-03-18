@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Database, Terminal, BarChart2, Bot, Settings, Layers, LayoutDashboard, MessageSquare, Sparkles } from "lucide-react";
+import { Database, Terminal, BarChart2, Bot, Settings, Layers, LayoutDashboard, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ActivityTab = 'connections' | 'sql-editor' | 'analysis' | 'ai-assistant' | 'settings';
+export type ActivityTab = 'connections' | 'sql-editor' | 'analysis' | 'settings';
 
 interface ActivityBarProps {
     activeTab: ActivityTab;
@@ -15,7 +15,6 @@ export function ActivityBar({ activeTab, onTabChange }: ActivityBarProps) {
     const tabs: { id: ActivityTab; icon: React.ElementType; label: string }[] = [
         { id: 'connections', icon: Database, label: 'Database Connections' },
         { id: 'analysis', icon: LayoutDashboard, label: 'Data Analysis' },
-        { id: 'ai-assistant', icon: Sparkles, label: 'AI Chat' },
     ];
 
     const bottomTabs: { id: ActivityTab; icon: React.ElementType; label: string }[] = [];

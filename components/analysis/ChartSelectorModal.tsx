@@ -5,7 +5,6 @@ import { Search, X, Check, BarChart, Calendar, MessageSquare } from "lucide-reac
 import { cn } from "@/lib/utils";
 import ReactECharts from 'echarts-for-react';
 import { NativeECharts } from "@/components/ui/NativeECharts";
-import { useSqlBotStore } from "@/stores/useSqlBotStore";
 import { useAnalysisStore } from "@/stores/useAnalysisStore";
 
 interface ChartSelectorModalProps {
@@ -14,7 +13,8 @@ interface ChartSelectorModalProps {
 }
 
 export function ChartSelectorModal({ isOpen, onClose }: ChartSelectorModalProps) {
-    const { conversations, loadConversationMessages } = useSqlBotStore();
+    const conversations: any[] = [];
+    const loadConversationMessages = async (_id: string) => {};
     const { addComponent } = useAnalysisStore();
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -50,8 +50,8 @@ export function ChartSelectorModal({ isOpen, onClose }: ChartSelectorModalProps)
         if (!conversation || !conversation.messages) return [];
 
         return conversation.messages
-            .filter(m => m.chart)
-            .map(m => ({
+            .filter((m: any) => m.chart)
+            .map((m: any) => ({
                 id: m.id,
                 chart: m.chart
             }));
@@ -72,7 +72,7 @@ export function ChartSelectorModal({ isOpen, onClose }: ChartSelectorModalProps)
         const chartsToAdd: any[] = [];
 
         conversations.forEach(c => {
-            c.messages.forEach(m => {
+            c.messages.forEach((m: any) => {
                 if (m.chart && selectedCharts.has(m.id)) {
                     chartsToAdd.push(m.chart);
                 }
@@ -178,7 +178,7 @@ export function ChartSelectorModal({ isOpen, onClose }: ChartSelectorModalProps)
                     <div className="flex-1 bg-muted/5 p-6 overflow-y-auto">
                         {selectedConversationId ? (
                             <div className="grid grid-cols-2 gap-6">
-                                {currentCharts.map(({ id, chart }) => {
+                                {currentCharts.map(({ id, chart }: { id: string; chart: any }) => {
                                     if (!chart) return null;
                                     return (
                                         <div

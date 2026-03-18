@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { AlertModal } from "@/components/ui/AlertModal";
 
-import { X, Table, Save, Loader2, Plus, Trash2, Sparkles, Wand2 } from "lucide-react";
+import { X, Table, Save, Loader2, Plus, Trash2 } from "lucide-react";
 import { useConnections } from "@/contexts/ConnectionContext";
 import { cn } from "@/lib/utils";
 
@@ -29,13 +29,10 @@ const COLUMN_TYPES = [
 
 export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, onSuccess }: CreateTableModalProps) {
     const { createTable } = useConnections();
-    const [mode, setMode] = useState<"manual" | "ai">("manual");
     const [tableName, setTableName] = useState("");
     const [columns, setColumns] = useState<ColumnDefinition[]>([
         { id: "1", name: "id", type: "INT", isPrimaryKey: true, isNullable: false }
     ]);
-    const [aiPrompt, setAiPrompt] = useState("");
-    const [isGenerating, setIsGenerating] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     // Alert State
@@ -72,51 +69,6 @@ export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, 
 
     const updateColumn = (id: string, field: keyof ColumnDefinition, value: any) => {
         setColumns(columns.map(c => c.id === id ? { ...c, [field]: value } : c));
-    };
-
-    const handleAiGenerate = async () => {
-        if (!aiPrompt.trim()) return;
-
-        setIsGenerating(true);
-
-        try {
-            const response = await fetch('/api/ai-chat/generate-schema', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    prompt: aiPrompt,
-                    databaseType: 'mysql', // TODO: Could be passed from parent based on connection type
-                }),
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.columns) {
-                setColumns(data.columns);
-                if (data.tableName && !tableName) {
-                    setTableName(data.tableName);
-                }
-                setMode("manual"); // Switch to manual to review
-            } else {
-                console.error('AI Schema Generation failed:', data.error);
-                // Fallback to basic structure
-                setColumns([
-                    { id: "fallback_1", name: "id", type: "INT", isPrimaryKey: true, isNullable: false },
-                    { id: "fallback_2", name: "name", type: "VARCHAR(255)", isPrimaryKey: false, isNullable: true },
-                ]);
-                setMode("manual");
-            }
-        } catch (error) {
-            console.error('Error calling AI Schema API:', error);
-            // Fallback to basic structure on error
-            setColumns([
-                { id: "error_1", name: "id", type: "INT", isPrimaryKey: true, isNullable: false },
-                { id: "error_2", name: "name", type: "VARCHAR(255)", isPrimaryKey: false, isNullable: true },
-            ]);
-            setMode("manual");
-        } finally {
-            setIsGenerating(false);
-        }
     };
 
     const handleSave = async () => {
@@ -172,32 +124,8 @@ export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, 
                         </button>
                     </div>
 
-                    {/* ... tabs ... */}
-                    <div className="flex border-b">
-                        <button
-                            onClick={() => setMode("manual")}
-                            className={cn(
-                                "flex-1 px-6 py-3 text-sm font-medium transition-colors border-b-2",
-                                mode === "manual" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Manual Definition
-                        </button>
-                        <button
-                            onClick={() => setMode("ai")}
-                            className={cn(
-                                "flex-1 px-6 py-3 text-sm font-medium transition-colors border-b-2 flex items-center justify-center gap-2",
-                                mode === "ai" ? "border-purple-500 text-purple-600" : "border-transparent text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            <Sparkles className="h-4 w-4" />
-                            AI Generate
-                        </button>
-                    </div>
-
                     {/* ... body ... */}
                     <div className="flex-1 overflow-y-auto p-6">
-                        {mode === "manual" ? (
                             <div className="space-y-6">
                                 <div>
                                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground uppercase">
@@ -289,44 +217,6 @@ export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, 
                                     </div>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="flex flex-col h-full items-center justify-center space-y-6 py-12">
-                                <div className="bg-purple-50 p-4 rounded-full">
-                                    <Wand2 className="h-8 w-8 text-purple-600" />
-                                </div>
-                                <div className="text-center max-w-md space-y-2">
-                                    <h3 className="text-lg font-semibold">Describe your table</h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Describe the data you want to store, and AI will generate the table structure for you.
-                                    </p>
-                                </div>
-                                <div className="w-full max-w-xl space-y-4">
-                                    <textarea
-                                        value={aiPrompt}
-                                        onChange={(e) => setAiPrompt(e.target.value)}
-                                        placeholder="e.g., Create a products table with name, price, stock quantity, and category..."
-                                        className="w-full h-32 rounded-lg border bg-background p-4 text-sm outline-none focus:border-purple-500 resize-none shadow-sm"
-                                    />
-                                    <button
-                                        onClick={handleAiGenerate}
-                                        disabled={!aiPrompt.trim() || isGenerating}
-                                        className="w-full rounded-lg bg-purple-600 py-3 text-sm font-medium text-white hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isGenerating ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Generating Schema...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="h-4 w-4" />
-                                                Generate Table Structure
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     <div className="flex items-center justify-end gap-3 border-t bg-muted/5 px-6 py-4">
@@ -336,7 +226,6 @@ export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, 
                         >
                             Cancel
                         </button>
-                        {mode === "manual" && (
                             <button
                                 onClick={handleSave}
                                 disabled={!tableName || columns.length === 0 || isSaving}
@@ -345,7 +234,6 @@ export function CreateTableModal({ isOpen, onClose, connectionId, databaseName, 
                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                                 Create Table
                             </button>
-                        )}
                     </div>
                 </div>
             </div>

@@ -18,7 +18,6 @@ import {
     Unplug,
     Edit2,
     Trash2,
-    Sparkles,
     Download,
     Upload,
     Terminal,
@@ -38,7 +37,6 @@ import { DeleteDatabaseModal } from "../database/DeleteDatabaseModal";
 import { EditTableModal } from "../database/EditTableModal";
 import { DeleteTableModal } from "../database/DeleteTableModal";
 
-import { GenerateTestDataModal } from "@/components/database/GenerateTestDataModal";
 import { ExportDataModal } from "../database/ExportDataModal";
 import { ExportDatabaseModal } from "../database/ExportDatabaseModal";
 import { ImportDatabaseModal } from "../database/ImportDatabaseModal";
@@ -52,7 +50,6 @@ import { useRouter } from "next/navigation";
 import { ExportCollectionModal } from "@/components/database/ExportCollectionModal";
 import { ImportCollectionModal } from "@/components/database/ImportCollectionModal";
 import { useTabContext } from "@/contexts/TabContext";
-import { useSqlBotStore } from "@/stores/useSqlBotStore";
 
 interface SidebarProps {
     onRefreshCollection?: () => void;
@@ -68,7 +65,6 @@ const DB_ICONS: Record<string, string> = {
 export function Sidebar({ onRefreshCollection }: SidebarProps) {
     const { connections, selectedItem, selectItem, fetchDatabases, fetchSchemas, fetchTables } = useConnections();
     const { openTab } = useTabContext();
-    const { prefetchSuggestions } = useSqlBotStore();
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const [treeData, setTreeData] = useState<Record<string, any[]>>({});
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
@@ -201,7 +197,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
     const [deletingDatabase, setDeletingDatabase] = useState<{ connectionId: string; databaseName: string } | null>(null);
     const [editingTable, setEditingTable] = useState<{ connectionId: string; databaseName: string; schema?: string; tableName: string } | null>(null);
     const [deletingTable, setDeletingTable] = useState<{ connectionId: string; databaseName: string; schema?: string; tableName: string } | null>(null);
-    const [generatingDataParams, setGeneratingDataParams] = useState<{ connectionId: string; databaseName: string; schema?: string | null; tableName: string; isCollection?: boolean } | null>(null);
     const [exportDataParams, setExportDataParams] = useState<{
         connectionId: string;
         databaseName: string;
@@ -270,21 +265,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
                     metadata: { database: db }
                 }));
 
-                // Prefetch suggestions for first few databases (non-blocking)
-                if (conn && dbs.length > 0) {
-                    const dbsToPreload = dbs.slice(0, 3); // Only prefetch first 3 databases
-                    dbsToPreload.forEach(db => {
-                        prefetchSuggestions({
-                            connectionId: conn.id,
-                            type: conn.type.toLowerCase(),
-                            host: conn.host,
-                            port: conn.port,
-                            user: conn.user,
-                            password: conn.password,
-                            database: db
-                        });
-                    });
-                }
             } else if (item.type === 'database') {
                 // For PostgreSQL, fetch schemas first
                 const conn = connections.find(c => c.id === item.connectionId);
@@ -501,15 +481,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
                 break;
             case 'drop_collection':
                 handleDropCollection(item);
-                break;
-            case 'generate_test_data':
-                setGeneratingDataParams({
-                    connectionId: item.connectionId,
-                    databaseName: item.metadata.database,
-                    schema: item.metadata.schema || null,
-                    tableName: item.name,
-                    isCollection: type === 'collection'
-                });
                 break;
             case 'export_data':
                 setExportDataParams({
@@ -948,7 +919,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
                             { separator: true } as const,
                         ] : []),
                         ...(contextMenu.type === 'collection' ? [
-                            { label: 'Mock Data', onClick: () => handleContextMenuAction('generate_test_data'), icon: <Sparkles className="h-4 w-4 text-purple-500" /> },
                             { label: 'Export Collection', onClick: handleExportCollection, icon: <Download className="h-4 w-4" /> },
                             { label: 'Import Collection', onClick: handleImportCollection, icon: <Upload className="h-4 w-4" /> },
                             { separator: true } as const,
@@ -956,7 +926,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
 
                         ] : []),
                         ...(contextMenu.type === 'table' ? [
-                            { label: 'Mock Data', onClick: () => handleContextMenuAction('generate_test_data'), icon: <Sparkles className="h-4 w-4 text-purple-500" /> },
                             { label: 'Import Data', onClick: () => handleContextMenuAction('import_data'), icon: <Upload className="h-4 w-4" /> },
                             { label: 'Export Data', onClick: () => handleContextMenuAction('export_data'), icon: <Download className="h-4 w-4" /> },
                             { separator: true } as const,
@@ -1039,24 +1008,6 @@ export function Sidebar({ onRefreshCollection }: SidebarProps) {
                                 metadata: { database: creatingTableDb.databaseName }
                             };
                             refreshNode(dbItem);
-                        }
-                    }}
-                />
-            )}
-
-            {generatingDataParams && (
-                <GenerateTestDataModal
-                    isOpen={!!generatingDataParams}
-                    onClose={() => setGeneratingDataParams(null)}
-                    connectionId={generatingDataParams.connectionId}
-                    databaseName={generatingDataParams.databaseName}
-                    schema={generatingDataParams.schema}
-                    tableName={generatingDataParams.tableName}
-                    isCollection={generatingDataParams.isCollection}
-                    onSuccess={() => {
-                        // Refresh collection data if it's a collection
-                        if (generatingDataParams.isCollection) {
-                            onRefreshCollection?.();
                         }
                     }}
                 />
