@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- **Node.js** 18.x or later
-- **npm** (comes with Node.js)
+- **Node.js** 22.x or later
+- **pnpm** 10.x or later (`npm install -g pnpm`)
 - An AI provider API key (Anthropic, OpenAI, or a local Ollama instance)
 - Access to at least one supported database (MySQL, PostgreSQL, MongoDB, or Redis)
 
@@ -15,7 +15,7 @@ git clone <repo-url>
 cd dataflow-ai-analyst
 
 # Install dependencies
-npm install
+pnpm install
 ```
 
 ## Environment Configuration
@@ -65,7 +65,7 @@ PERSIST_DB_NAME=dataflow
 ## Running the Development Server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -74,10 +74,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Create production build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
+| `pnpm dev` | Start development server with hot reload |
+| `pnpm build` | Create production build |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
 
 ## Default Database Connections
 
@@ -94,7 +94,7 @@ The app ships with 4 pre-configured database connections (defined in `contexts/C
 
 ## First Steps After Setup
 
-1. Start the dev server (`npm run dev`)
+1. Start the dev server (`pnpm dev`)
 2. The app opens with the **Connections** tab active
 3. Expand a database connection in the sidebar to browse databases/tables
 4. Click a table to view its data
@@ -110,6 +110,6 @@ The app ships with 4 pre-configured database connections (defined in `contexts/C
 
 **Database connection errors** - Verify the database host/port are reachable from your machine. Default connections require internet access to `dbconn.sealosbja.site`.
 
-**Build errors with `monaco-editor`** - The Monaco Editor package can be large. If you experience memory issues during build, increase Node memory: `NODE_OPTIONS="--max-old-space-size=4096" npm run build`.
+**Build errors with `monaco-editor`** - The Monaco Editor package can be large. If you experience memory issues during build, increase Node memory: `NODE_OPTIONS="--max-old-space-size=4096" pnpm build`.
 
-**Port 3000 already in use** - Run `npm run dev -- -p 3001` to use a different port.
+**Port 3000 already in use** - Run `pnpm dev --port 3001` to use a different port.

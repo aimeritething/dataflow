@@ -4,10 +4,10 @@
 
 ```bash
 # Production build
-npm run build
+pnpm build
 
 # Start production server
-npm run start
+pnpm start
 ```
 
 The app builds with `output: 'standalone'` (configured in `next.config.ts`), which creates a self-contained deployment bundle at `.next/standalone/`.
@@ -38,20 +38,21 @@ cp -r .next/static .next/standalone/.next/static
 ### Dockerfile Example
 
 ```dockerfile
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
+RUN corepack enable && corepack prepare pnpm@latest-10 --activate
 
 # Install dependencies
 FROM base AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN pnpm build
 
 # Production
 FROM base AS runner
@@ -154,7 +155,7 @@ The project was originally developed for Sealos Cloud deployment with managed da
 ### Railway / Render / Fly.io
 
 1. Connect your Git repository
-2. Set build command: `npm run build`
+2. Set build command: `pnpm build`
 3. Set start command: `node .next/standalone/server.js`
 4. Configure environment variables
 5. Add a MySQL service for persistence

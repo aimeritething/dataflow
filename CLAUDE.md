@@ -9,10 +9,10 @@ DataFlow AI Analyst — an AI-powered database management and analysis platform.
 ## Commands
 
 ```bash
-npm run dev      # Dev server at localhost:3000
-npm run build    # Production build (standalone output)
-npm run start    # Start production server
-npm run lint     # ESLint (next core-web-vitals + typescript)
+pnpm dev      # Dev server at localhost:3000
+pnpm build    # Production build (standalone output)
+pnpm start    # Start production server
+pnpm lint     # ESLint (next core-web-vitals + typescript)
 ```
 
 No test framework is configured.
